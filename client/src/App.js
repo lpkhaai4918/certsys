@@ -291,8 +291,7 @@ function App() {
 
         {/* QR */}
         <div className="flex justify-center mt-4">
-          <QRCodeCanvas value={`http://localhost:3000?id=${certId}`} />
-        </div>
+<QRCodeCanvas value={`https://certsys.vercel.app?id=${certId}`} />        </div>
       </div>
     </div>
   );
