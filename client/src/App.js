@@ -56,7 +56,6 @@ const [verifyInputId, setVerifyInputId] = useState("");
   const BASE_URL = "http://localhost:3000";
 
  // ================= AUTO LOAD QR =================
-// ================= AUTO LOAD QR =================
 useEffect(() => {
   const autoVerify = async () => {
     if (!readContract) return;
@@ -129,7 +128,7 @@ async function connectWallet() {
     method: "eth_accounts",
   });
 
-  // 🔥 loại issuer (account hiện tại) + admin (account[0])
+  // loại issuer (account hiện tại) + admin (account[0])
   const filtered = allAccounts.filter(
     acc => acc !== accounts[0] && acc !== allAccounts[0]
   );
@@ -148,7 +147,7 @@ async function connectWallet() {
   // ================= UPLOAD =================
 async function uploadToIPFS(file) {
   try {
-    setUploading(true); // 🔥 START
+    setUploading(true); // 
 
     const formData = new FormData();
     formData.append("file", file);
@@ -163,7 +162,7 @@ async function uploadToIPFS(file) {
     alert("Upload lỗi (chưa chạy server?)");
     return null;
   } finally {
-    setUploading(false); // STOP
+    setUploading(false); 
   }
 }
 
@@ -182,7 +181,7 @@ function isValidCCCD(cccd) {
   const file = e.target.files[0];
   if (!file) return;
 
-  // 🔥 CHECK PDF 
+  //  CHECK PDF 
   if (file.type !== "application/pdf") {
       setLoading(false);
 
@@ -205,7 +204,7 @@ async function handleVerifyFile(e) {
 
  
 
-  // 🔥 HASH FILE USER UPLOAD (QUAN TRỌNG NHẤT)
+  //  HASH FILE USER UPLOAD 
   const buffer = await file.arrayBuffer();
 
   const hash = CryptoJS.SHA256(
@@ -216,20 +215,20 @@ async function handleVerifyFile(e) {
 
   alert("✅ Đã load file user");
 
-  // 🔥 VERIFY với hash này
+  // VERIFY với hash này
 const c = contract || readContract;
 
-// 🔥 lấy certId từ hash
+//  lấy certId từ hash
 const foundCertId = await c.hashToCert(hash);
 
 if (!foundCertId || foundCertId === "") {
   return setVerifyResult("❌ Không tìm thấy cert");
 }
 
-// 🔥 set lại certId
+//  set lại certId
 setCertId(foundCertId);
 
-// 🔥 verify bình thường
+//  verify bình thường
 await verifyCert(hash);}
 
   async function uploadMetadata() {
@@ -319,9 +318,10 @@ console.log("ID TO VERIFY:", idToVerify);
   }
 }
 
-    const hash = result[0];
-    const metadataCID = result[1];
-    const isValid = result[2];
+   const hash = result[0];
+const metadataCID = result[1];
+const fileCID = result[2];
+const isValid = result[3];
 
     setVerifiedHash(hash);
     await loadMetadata(metadataCID);
@@ -333,8 +333,27 @@ console.log("ID TO VERIFY:", idToVerify);
     }
 
     if (!compareHash) {
-      return setVerifyResult("✅ HỢP LỆ (THEO ID)");
-    }
+  // VERIFY THEO CERT ID CHUẨN:
+  // tải file gốc từ fileCID
+  // hash lại
+  // so với blockchain
+
+  const fileRes = await fetch(
+    `https://gateway.pinata.cloud/ipfs/${fileCID}`
+  );
+
+  const fileBuffer = await fileRes.arrayBuffer();
+
+  const fileHashFromIPFS = CryptoJS.SHA256(
+    CryptoJS.lib.WordArray.create(fileBuffer)
+  ).toString();
+
+  if (fileHashFromIPFS === hash) {
+    return setVerifyResult("✅ FILE GỐC CHÍNH XÁC");
+  } else {
+    return setVerifyResult("❌ FILE GỐC TRÊN IPFS BỊ THAY ĐỔI");
+  }
+}
 
     if (hash === compareHash) {
       return setVerifyResult("✅ FILE CHÍNH XÁC");
@@ -436,16 +455,16 @@ currentHash = CryptoJS.SHA256(
 setLatestCert(uploadedCID); // 🔥 thêm dòng này
     // METADATA
     const metadata = {
-  certId,          //  thêm
+  certId,          //  
   name,
-  cccd, //  thêm dòng này
+  cccd, //  
   school,
   major,
   grade,
   date,
   note,
   expiryDate,
-  issuer: account, //  thêm
+  issuer: account, //  
   hash: currentHash,
   file: currentCID,
 };
@@ -462,7 +481,8 @@ setLatestCert(uploadedCID); // 🔥 thêm dòng này
   name,
   currentHash,
   metadataCID,
-  identity // ✅
+  currentCID, 
+  identity
 );
 
     await tx.wait();
@@ -474,7 +494,7 @@ console.log("CHECK AFTER ISSUE:", check);
 
     alert("✅ Issued!");
     setShowIssuerList(false);
-setLoading(false); //  STOP loading
+setLoading(false); //  
 setCertId("CERT-" + Date.now());
 
 // CLEAR FORM
@@ -489,7 +509,7 @@ setExpiryDate("");
   } catch (err) {
   console.error("❌ ERROR:", err);
   alert("❌ Issue lỗi: " + err.message);
-  setLoading(false); //  tránh bị treo loading
+  setLoading(false); // 
 }
 }
   // ================= PDF =================
@@ -590,7 +610,7 @@ async function addQRToUploadedPDF(file) {
 
   const { width } = firstPage.getSize();
 
-  // chèn QR vào góc phải
+  
   firstPage.drawImage(qrEmbed, {
     x: width - 120,
     y: 50,
@@ -598,7 +618,7 @@ async function addQRToUploadedPDF(file) {
     height: 80,
   });
 
-  // chèn CertID
+  
   firstPage.drawText(`ID: ${certId}`, {
     x: 50,
     y: 50,
@@ -606,7 +626,7 @@ async function addQRToUploadedPDF(file) {
     color: rgb(0, 0, 0),
   });
 
-  // xuất PDF mới
+  
   const pdfBytes = await pdfDoc.save();
 
   return new File(

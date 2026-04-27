@@ -78,7 +78,12 @@ export const contractABI = [
         },
         {
           "internalType": "string",
-          "name": "cid",
+          "name": "metadataCID",
+          "type": "string"
+        },
+        {
+          "internalType": "string",
+          "name": "fileCID",
           "type": "string"
         },
         {
@@ -299,7 +304,12 @@ export const contractABI = [
         },
         {
           "internalType": "string",
-          "name": "_cid",
+          "name": "_metadataCID",
+          "type": "string"
+        },
+        {
+          "internalType": "string",
+          "name": "_fileCID",
           "type": "string"
         },
         {
@@ -373,6 +383,11 @@ export const contractABI = [
       ],
       "name": "verifyCert",
       "outputs": [
+        {
+          "internalType": "string",
+          "name": "",
+          "type": "string"
+        },
         {
           "internalType": "string",
           "name": "",

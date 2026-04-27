@@ -9,15 +9,18 @@ contract Cert {
         admin = msg.sender;
     }
 
-    struct Certificate {
-        string id;          //Certificate ID
-        string name;        //  tên người học
-        string hash;        // giá trị băm SHA-256 của file PDF văn bằng
-        string cid;         //mã CID của file metadata được lưu trên IPFS
-        address issuer;     //địa chỉ ví Ethereum của Cơ sở đào tạo đã cấp văn bằng.
-        bytes32 identity;    //  người sở hữu
-        bool valid;            //Trạng thái hiệu lực của văn bằng
-    }
+   struct Certificate {
+    string id;
+    string name;
+
+    string hash;        // hash file PDF chuẩn
+    string metadataCID; // metadata json
+    string fileCID;     // PDF gốc thực tế
+
+    address issuer;
+    bytes32 identity;
+    bool valid;
+}
 mapping(bytes32 => address) public identityToWallet;
 mapping(address => bytes32) public walletToIdentity;
 mapping(bytes32 => string[]) public certsByIdentity;
@@ -43,13 +46,16 @@ mapping(address => bool) public issuers;
         issuers[_issuer] = true;
     }
 
-  function issueCert(
+ function issueCert(
     string memory _id,
     string memory _name,
     string memory _hash,
-    string memory _cid,
+    string memory _metadataCID,
+    string memory _fileCID,
     bytes32 _identity
-) public onlyIssuer {
+)
+public onlyIssuer
+{
 require(bytes(certs[_id].id).length == 0, "ID exists");
 
 require(bytes(_hash).length > 0, "Hash empty");
@@ -59,16 +65,18 @@ require(
     "Certificate already exists"
 );
 
-require(bytes(_cid).length > 0, "CID empty");
-    certs[_id] = Certificate(
-        _id,
-        _name,
-        _hash,
-        _cid,
-        msg.sender,
-        _identity,
-        true
-    );
+require(bytes(_metadataCID).length > 0, "Metadata CID empty");
+require(bytes(_fileCID).length > 0, "File CID empty");
+  certs[_id] = Certificate(
+    _id,
+    _name,
+    _hash,
+    _metadataCID,
+    _fileCID,
+    msg.sender,
+    _identity,
+    true
+);
 hashToCert[_hash] = _id; //  THÊM DÒNG NÀY
     certIds.push(_id);
     certsByIssuer[msg.sender].push(_id);
@@ -81,23 +89,25 @@ hashToCert[_hash] = _id; //  THÊM DÒNG NÀY
 }
    function verifyCert(string memory _id)
     public view
-    returns (
-        string memory,
-        string memory,
-        bool,
-        address,
-        bytes32
-    )
+   returns (
+    string memory, // hash
+    string memory, // metadataCID
+    string memory, // fileCID
+    bool,
+    address,
+    bytes32
+)
 {
     Certificate memory cert = certs[_id];
 require(bytes(cert.id).length > 0, "Cert not found");
-    return (
-        cert.hash,
-        cert.cid,
-        cert.valid,
-        cert.issuer,
-        cert.identity
-    );
+  return (
+    cert.hash,
+    cert.metadataCID,
+    cert.fileCID,
+    cert.valid,
+    cert.issuer,
+    cert.identity
+);
 }
 
     function getAllCertIds() public view returns (string[] memory) {
